@@ -24,6 +24,7 @@ use Pimcore\Model\Document;
 use Pimcore\Model\Site;
 use Pimcore\SystemSettingsConfig;
 use Pimcore\Tool\Storage;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Lock\LockFactory;
 
 class StaticPageGenerator
@@ -31,7 +32,8 @@ class StaticPageGenerator
     public function __construct(
         protected DocumentRendererInterface $documentRenderer,
         private LockFactory $lockFactory,
-        protected SystemSettingsConfig $settingsConfig
+        protected SystemSettingsConfig $settingsConfig,
+        protected KernelInterface $kernel
     ) {
     }
 
@@ -108,6 +110,10 @@ class StaticPageGenerator
 
         if ($params['is_cli'] ?? false) {
             $lock->release();
+
+            if ($this->kernel->getContainer()->has('services_resetter')) {
+                $this->kernel->getContainer()->get('services_resetter')->reset();
+            }
         }
 
         return true;
